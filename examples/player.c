@@ -1,9 +1,16 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 
 #define POCKETMOD_IMPLEMENTATION
 #include "pocketmod.h"
+
+static volatile int keeponrunning = 1;
+
+void intHandler() {
+    keeponrunning = 0;
+}
 
 static void audio_callback(void *userdata, Uint8 *buffer, int bytes)
 {
@@ -76,7 +83,8 @@ int main(int argc, char **argv)
     /* Start playback */
     SDL_PauseAudioDevice(device, 0);
     start_time = SDL_GetTicks();
-    for (;;) {
+    signal(SIGINT, intHandler); /* install handler for Ctrl-C */
+    while (keeponrunning) {
 
         /* Print some information during playback */
         int seconds = (SDL_GetTicks() - start_time) / 1000;
